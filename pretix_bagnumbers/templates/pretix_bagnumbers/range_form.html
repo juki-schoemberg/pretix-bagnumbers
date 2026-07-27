@@ -1,7 +1,7 @@
 {% extends "pretixcontrol/event/base.html" %}
 {% load i18n bootstrap3 %}
 {% block title %}{% trans "Number Range" %}{% endblock %}
-{% block inside %}
+{% block content %}
   <h1>{% trans "Number Range" %}</h1>
   <form method="post">
     {% csrf_token %}

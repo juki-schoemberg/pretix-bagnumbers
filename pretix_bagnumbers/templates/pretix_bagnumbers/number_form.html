@@ -1,7 +1,7 @@
 {% extends "pretixcontrol/event/base.html" %}
 {% load i18n bootstrap3 %}
 {% block title %}{% trans "Change Bag Number" %}{% endblock %}
-{% block inside %}
+{% block content %}
   <h1>{% trans "Change Bag Number" %}</h1>
   <form method="post">
     {% csrf_token %}
