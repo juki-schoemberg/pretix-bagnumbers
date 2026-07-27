@@ -1,11 +1,19 @@
 [project]
 name = "pretix-bagnumbers"
-version = "0.1.0"
+version = "1.0.0"
 description = "Fortlaufende Taschennummern mit Nummernkreisen pro Produkt"
+authors = [{ name = "JuKi Schömberg e.V." }]
+license = "AGPL-3.0-or-later"
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/thebootable/juki-pretix-taschennummer"
 
 [project.entry-points."pretix.plugin"]
 pretix_bagnumbers = "pretix_bagnumbers:PretixPluginMeta"
+
+[tool.setuptools.packages.find]
+include = ["pretix_bagnumbers*"]
 
 [tool.setuptools.package-data]
 pretix_bagnumbers = ["templates/**/*.html", "migrations/*.py", "locale/**/*"]

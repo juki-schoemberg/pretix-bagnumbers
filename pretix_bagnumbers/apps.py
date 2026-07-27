@@ -8,14 +8,14 @@ class PluginApp(AppConfig):
 
     class PretixPluginMeta:
         name = _("Bag Numbers")
-        author = "Tobi"
+        author = "JuKi Schömberg e.V."
         description = _(
             "Consecutive bag numbers with configurable number ranges per product. "
             "Numbers are unique per event, are released on cancellation, and are "
             "available in ticket printing and exports."
         )
         visible = True
-        version = "0.1.0"
+        version = "1.0.0"
         category = "FEATURE"
         compatibility = "pretix>=2024.7.0"
 
