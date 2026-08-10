@@ -3,7 +3,7 @@ name = "pretix-bagnumbers"
 version = "1.0.0"
 description = "Fortlaufende Taschennummern mit Nummernkreisen pro Produkt"
 authors = [{ name = "JuKi Schömberg e.V." }]
-license = "AGPL-3.0-or-later"
+license = "Apache-2.0"
 dependencies = []
 
 [project.urls]
