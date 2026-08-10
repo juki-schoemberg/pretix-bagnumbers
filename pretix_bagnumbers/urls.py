@@ -38,4 +38,14 @@ urlpatterns = [
         views.BulkAssignView.as_view(),
         name="product.assign_bulk",
     ),
+    path(
+        "control/event/<str:organizer>/<str:event>/bagnumbers/import/",
+        views.ImportView.as_view(),
+        name="import",
+    ),
+    path(
+        "control/event/<str:organizer>/<str:event>/bagnumbers/export/",
+        views.ExportView.as_view(),
+        name="export",
+    ),
 ]

@@ -92,11 +92,27 @@
   </table>
 
   <h2>{% trans "Assigned Numbers" %}
-    <a href="{% url 'control:event.orders.export' organizer=request.organizer.slug event=request.event.slug %}"
+    <a href="{% url 'plugins:pretix_bagnumbers:import' organizer=request.organizer.slug event=request.event.slug %}"
        class="btn btn-default btn-sm pull-right">
+      <span class="fa fa-upload"></span> {% trans "Import from CSV" %}
+    </a>
+    <a href="{% url 'plugins:pretix_bagnumbers:export' organizer=request.organizer.slug event=request.event.slug %}?range={{ selected_range }}"
+       class="btn btn-default btn-sm pull-right" style="margin-right: 5px;">
       <span class="fa fa-download"></span> {% trans "Export" %}
     </a>
   </h2>
+
+  <ul class="nav nav-pills" style="margin-bottom: 15px;">
+    <li class="{% if selected_range == 'all' %}active{% endif %}">
+      <a href="?range=all">{% trans "All" %}</a>
+    </li>
+    {% for r in ranges %}
+      <li class="{% if selected_range == r.pk|stringformat:'s' %}active{% endif %}">
+        <a href="?range={{ r.pk }}">{{ r.name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
   <table class="table">
     <thead>
       <tr>
@@ -120,6 +136,8 @@
                class="btn btn-default btn-sm">{% trans "Change" %}</a>
           </td>
         </tr>
+      {% empty %}
+        <tr><td colspan="5"><em>{% trans "No numbers assigned yet." %}</em></td></tr>
       {% endfor %}
     </tbody>
   </table>

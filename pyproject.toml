@@ -1,13 +1,15 @@
 [project]
 name = "pretix-bagnumbers"
 version = "1.0.0"
-description = "Fortlaufende Taschennummern mit Nummernkreisen pro Produkt"
+description = "Sequential bag numbers with configurable number ranges per product"
+readme = "README.md"
 authors = [{ name = "JuKi Schömberg e.V." }]
 license = "Apache-2.0"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/thebootable/juki-pretix-taschennummer"
+Homepage = "https://github.com/juki-schoemberg/pretix-bagnumbers"
+Repository = "https://github.com/juki-schoemberg/pretix-bagnumbers"
 
 [project.entry-points."pretix.plugin"]
 pretix_bagnumbers = "pretix_bagnumbers:PretixPluginMeta"

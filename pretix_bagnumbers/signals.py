@@ -13,7 +13,6 @@ from pretix.base.signals import (
     order_placed,
     order_reactivated,
     order_split,
-    register_data_exporters,
 )
 from pretix.control.signals import item_forms, nav_event, order_info
 
@@ -139,14 +138,6 @@ def api_details(sender, orderposition, **kwargs):
         return {"bag_number": orderposition.bagnumber.number}
     except BagNumber.DoesNotExist:
         return {"bag_number": None}
-
-
-# ------------------------------------------------------------ Export
-
-@receiver(register_data_exporters, dispatch_uid=f"{DUID}_teilnehmerdaten_exporter")
-def register_teilnehmerdaten_exporter(sender, **kwargs):
-    from .exporters import TeilnehmerdatenExporter
-    return TeilnehmerdatenExporter
 
 
 # ------------------------------------------------------- Order-Detailseite

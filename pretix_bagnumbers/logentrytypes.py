@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
-from pretix.base.logentrytypes import OrderLogEntryType, log_entry_types
+from pretix.base.logentrytypes import EventLogEntryType, OrderLogEntryType, log_entry_types
 
 
 @log_entry_types.new_from_dict({
@@ -16,4 +16,13 @@ from pretix.base.logentrytypes import OrderLogEntryType, log_entry_types
     ),
 })
 class BagNumberLogEntryType(OrderLogEntryType):
+    pass
+
+
+@log_entry_types.new_from_dict({
+    "pretix_bagnumbers.import.completed": _(
+        "Bag numbers were imported from file \"{filename}\" ({applied} positions updated)."
+    ),
+})
+class BagNumberImportLogEntryType(EventLogEntryType):
     pass

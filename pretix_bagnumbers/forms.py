@@ -108,6 +108,28 @@ class NumberRangeForm(forms.ModelForm):
         return data
 
 
+class ImportUploadForm(forms.Form):
+    file = forms.FileField(
+        label=_("CSV file"),
+        help_text=_(
+            "Columns: Order Code, Position, Number. Comma or semicolon separated, "
+            "UTF-8 or Windows-1252 encoded, with a header row."
+        ),
+    )
+
+    def clean_file(self):
+        f = self.cleaned_data["file"]
+        raw = f.read()
+        for encoding in ("utf-8-sig", "cp1252"):
+            try:
+                return raw.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+        raise forms.ValidationError(
+            _("Could not read the file. Please save it as UTF-8 or Windows-1252 encoded CSV.")
+        )
+
+
 class BagNumberChangeForm(forms.ModelForm):
     class Meta:
         model = BagNumber

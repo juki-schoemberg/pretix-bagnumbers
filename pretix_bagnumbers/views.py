@@ -1,7 +1,13 @@
+import codecs
+import csv
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Count
 from django.views import View
@@ -10,9 +16,9 @@ from django.views.generic import FormView, TemplateView
 from pretix.base.models import Item, Order, OrderPosition
 from pretix.control.permissions import EventPermissionRequiredMixin
 
-from .forms import NumberRangeForm, BagNumberChangeForm
+from .forms import ImportUploadForm, NumberRangeForm, BagNumberChangeForm
 from .models import ItemNumberConfig, NumberRange, BagNumber
-from .services import assign_number, release_number
+from .services import assign_number, apply_import, parse_import_csv, release_number
 
 
 class OverviewView(EventPermissionRequiredMixin, TemplateView):
@@ -45,11 +51,20 @@ class OverviewView(EventPermissionRequiredMixin, TemplateView):
             item__event=event
         ).select_related("item", "number_range")
 
-        ctx["numbers"] = BagNumber.objects.filter(
+        numbers_qs = BagNumber.objects.filter(
             event=event
         ).select_related(
             "position__order", "position__item", "number_range"
         )
+        range_param = self.request.GET.get("range", "all")
+        selected_range = next((r for r in ranges if str(r.pk) == range_param), None)
+        if selected_range:
+            numbers_qs = numbers_qs.filter(number_range=selected_range)
+            range_param = str(selected_range.pk)
+        else:
+            range_param = "all"
+        ctx["numbers"] = numbers_qs
+        ctx["selected_range"] = range_param
 
         ctx["unassigned_count"] = OrderPosition.objects.filter(
             order__event=event,
@@ -60,6 +75,46 @@ class OverviewView(EventPermissionRequiredMixin, TemplateView):
         ).count()
 
         return ctx
+
+
+class ExportView(EventPermissionRequiredMixin, View):
+    """
+    Direct CSV download of assigned bag numbers -- Order Code, Position,
+    Number, Participant Name -- in the same shape `parse_import_csv()`
+    expects, so "export, reassign, re-import" works as a round trip.
+    Respects the `range` query parameter from the overview's filter
+    (a NumberRange pk, or "all"/absent for everything).
+    """
+    permission = "can_view_orders"
+
+    def get(self, request, *args, **kwargs):
+        event = request.event
+        qs = BagNumber.objects.filter(event=event).select_related(
+            "position__order", "position__item", "number_range"
+        )
+
+        range_param = request.GET.get("range")
+        filename_suffix = "alle"
+        if range_param and range_param != "all":
+            rng = get_object_or_404(NumberRange, pk=range_param, event=event)
+            qs = qs.filter(number_range=rng)
+            filename_suffix = slugify(rng.name) or "bereich"
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="bagnumbers_{event.slug}_{filename_suffix}.csv"'
+        )
+        response.write(codecs.BOM_UTF8.decode("utf-8"))  # so Excel opens umlauts correctly
+        writer = csv.writer(response)
+        writer.writerow(["Order Code", "Position", "Number", "Participant Name"])
+        for bn in qs:
+            writer.writerow([
+                bn.position.order.code,
+                bn.position.positionid,
+                bn.number,
+                bn.position.attendee_name or "",
+            ])
+        return response
 
 
 class RangeCreateUpdateView(EventPermissionRequiredMixin, FormView):
@@ -211,3 +266,96 @@ class NumberChangeView(EventPermissionRequiredMixin, FormView):
                 "event": self.request.event.slug,
             },
         ))
+
+
+class ImportView(EventPermissionRequiredMixin, FormView):
+    """
+    Two-step CSV import: uploading the file shows a preview (sample of
+    clean rows + full list of errors) without writing anything; a second,
+    explicit POST commits it. The decoded CSV text is kept in the session
+    between the two steps and re-validated on confirm, so the write always
+    reflects the current database state.
+    """
+    permission = "can_change_orders"
+    template_name = "pretix_bagnumbers/import_form.html"
+    form_class = ImportUploadForm
+
+    SESSION_KEY = "pretix_bagnumbers_import"
+    PREVIEW_LIMIT = 50
+    ERROR_DISPLAY_LIMIT = 200
+
+    def _overview_url(self):
+        return reverse(
+            "plugins:pretix_bagnumbers:overview",
+            kwargs={"organizer": self.request.organizer.slug, "event": self.request.event.slug},
+        )
+
+    def _import_url(self):
+        return reverse(
+            "plugins:pretix_bagnumbers:import",
+            kwargs={"organizer": self.request.organizer.slug, "event": self.request.event.slug},
+        )
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("confirm") == "1":
+            return self._confirm(request)
+        if request.POST.get("cancel") == "1":
+            request.session.pop(self.SESSION_KEY, None)
+            return redirect(self._import_url())
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        text = form.cleaned_data["file"]
+        filename = self.request.FILES["file"].name
+        result = parse_import_csv(text, self.request.event)
+
+        if result.global_error:
+            messages.error(self.request, result.global_error)
+            return self.render_to_response(self.get_context_data(form=form))
+
+        if not result.clean and not result.errors:
+            messages.info(self.request, _("The file does not contain any data rows."))
+            return self.render_to_response(self.get_context_data(form=form))
+
+        self.request.session[self.SESSION_KEY] = {"text": text, "filename": filename}
+        ctx = self.get_context_data(
+            form=form,
+            preview=True,
+            filename=filename,
+            preview_rows=result.clean[:self.PREVIEW_LIMIT],
+            preview_total=len(result.clean),
+            error_rows=result.errors[:self.ERROR_DISPLAY_LIMIT],
+            error_total=len(result.errors),
+        )
+        return self.render_to_response(ctx)
+
+    def _confirm(self, request):
+        data = request.session.get(self.SESSION_KEY)
+        if not data:
+            messages.error(request, _("Your import session has expired. Please upload the file again."))
+            return redirect(self._import_url())
+
+        result = parse_import_csv(data["text"], request.event)
+        try:
+            applied = apply_import(
+                result.clean, request.event, user=request.user, filename=data["filename"],
+            )
+        except IntegrityError:
+            messages.error(request, _(
+                "The import could not be completed because a conflicting change happened at the "
+                "same time. Please review the preview and try again."
+            ))
+            return redirect(self._import_url())
+
+        request.session.pop(self.SESSION_KEY, None)
+
+        if applied:
+            messages.success(request, _("%(count)s bag numbers were imported.") % {"count": applied})
+        if result.errors:
+            messages.warning(request, _(
+                "%(count)s row(s) were skipped due to errors."
+            ) % {"count": len(result.errors)})
+        if not applied and not result.errors:
+            messages.info(request, _("Nothing to import."))
+
+        return redirect(self._overview_url())

@@ -1,0 +1,114 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n bootstrap3 %}
+{% block title %}{% trans "Import Bag Numbers" %}{% endblock %}
+{% block content %}
+  <h1>{% trans "Import Bag Numbers" %}</h1>
+
+  {% if preview %}
+    <p>
+      {% trans "File" %}: <strong>{{ filename }}</strong>
+    </p>
+
+    {% if preview_total %}
+      <div class="alert alert-success">
+        {% blocktrans with count=preview_total %}<strong>{{ count }}</strong> row(s) are valid and will be imported.{% endblocktrans %}
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{% trans "Line" %}</th><th>{% trans "Order" %}</th><th>{% trans "Position" %}</th>
+            <th>{% trans "New Number" %}</th><th>{% trans "Previous Number" %}</th><th>{% trans "Status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview_rows %}
+            {% if row.old_number == row.number %}
+              <tr class="text-muted">
+                <td>{{ row.line_no }}</td>
+                <td>{{ row.order_code }}</td>
+                <td>{{ row.positionid }} ({{ row.position.item }})</td>
+                <td>{{ row.number }}</td>
+                <td>{{ row.old_number }}</td>
+                <td><span class="label label-default">{% trans "unchanged" %}</span></td>
+              </tr>
+            {% elif row.old_number is None %}
+              <tr>
+                <td>{{ row.line_no }}</td>
+                <td>{{ row.order_code }}</td>
+                <td>{{ row.positionid }} ({{ row.position.item }})</td>
+                <td><strong class="text-success">{{ row.number }}</strong></td>
+                <td>–</td>
+                <td><span class="label label-success">{% trans "new" %}</span></td>
+              </tr>
+            {% else %}
+              <tr>
+                <td>{{ row.line_no }}</td>
+                <td>{{ row.order_code }}</td>
+                <td>{{ row.positionid }} ({{ row.position.item }})</td>
+                <td><strong class="text-warning">{{ row.number }}</strong></td>
+                <td>{{ row.old_number }}</td>
+                <td><span class="label label-warning">{% trans "changed" %}</span></td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if preview_total > preview_rows|length %}
+        <p class="text-muted">
+          {% blocktrans with shown=preview_rows|length count=preview_total %}Showing {{ shown }} of {{ count }} valid rows.{% endblocktrans %}
+        </p>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-warning">{% trans "No valid rows found in this file." %}</div>
+    {% endif %}
+
+    {% if error_total %}
+      <h2>{% trans "Rejected rows" %}</h2>
+      <div class="alert alert-danger">
+        {% blocktrans with count=error_total %}<strong>{{ count }}</strong> row(s) will be skipped due to errors.{% endblocktrans %}
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{% trans "Line" %}</th><th>{% trans "Order" %}</th><th>{% trans "Position" %}</th>
+            <th>{% trans "Number" %}</th><th>{% trans "Reason" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for err in error_rows %}
+            <tr>
+              <td>{{ err.line_no }}</td>
+              <td>{{ err.raw.order_code }}</td>
+              <td>{{ err.raw.position }}</td>
+              <td>{{ err.raw.number }}</td>
+              <td class="text-danger">{{ err.message }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if error_total > error_rows|length %}
+        <p class="text-muted">
+          {% blocktrans with shown=error_rows|length count=error_total %}Showing {{ shown }} of {{ count }} rejected rows.{% endblocktrans %}
+        </p>
+      {% endif %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% if preview_total %}
+        <button type="submit" name="confirm" value="1" class="btn btn-primary">
+          {% trans "Confirm and import" %}
+        </button>
+      {% endif %}
+      <button type="submit" name="cancel" value="1" class="btn btn-default">
+        {% trans "Cancel" %}
+      </button>
+    </form>
+  {% else %}
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <button type="submit" class="btn btn-primary">{% trans "Upload and preview" %}</button>
+    </form>
+  {% endif %}
+{% endblock %}
