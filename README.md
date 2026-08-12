@@ -6,6 +6,48 @@ be handed out cleanly on site.
 
 [![License](https://img.shields.io/github/license/juki-schoemberg/pretix-bagnumbers)](LICENSE)
 
+## Screenshots
+
+### Enable plugin in settings
+
+![Enable plugin in settings](docs/images/step-0.png)
+
+### Overview over bag numbers
+
+![Overview over bag numbers](docs/images/step-1.png)
+
+### Add new number range
+
+![Add new number range](docs/images/step-2.png)
+
+### Change one bag number
+
+![Change one bag number](docs/images/step-3.png)
+
+### See changes and number gaps
+
+![See changes and number gaps](docs/images/step-4.png)
+
+### Import bag numbers
+
+![Import bag numbers](docs/images/step-5.png)
+
+### Preview import
+
+![Preview import](docs/images/step-6.png)
+
+### Exported CSV
+
+![Exported CSV](docs/images/step-7.png)
+
+### See numbers in order view
+
+![See numbers in order view](docs/images/step-8.png)
+
+### See changes in logs
+
+![See changes in logs](docs/images/step-9.png)
+
 ## How it works
 
 - **Number ranges** (name, start, optional end) are created per event.
