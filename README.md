@@ -1,7 +1,8 @@
 # pretix-bagnumbers
 
-Sequential **bag numbers** with configurable number ranges per product, so
-numbered bags can be handed out cleanly on site.
+A plugin for [pretix](https://pretix.eu) that adds sequential **bag
+numbers** with configurable number ranges per product, so numbered bags can
+be handed out cleanly on site.
 
 [![License](https://img.shields.io/github/license/juki-schoemberg/pretix-bagnumbers)](LICENSE)
 
