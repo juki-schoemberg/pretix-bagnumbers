@@ -101,7 +101,8 @@ be handed out cleanly on site.
 - **Event cloning**: ranges and assignments are copied along, numbers are
   not.
 
-Signal names have been checked against the pretix docs as of 2026.7
+Tested against pretix 2026.9.0. Signal names have been checked against the
+pretix source of that version
 (`layout_text_variables` and `order_reactivated` live in
 `pretix.base.signals`).
 
