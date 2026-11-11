@@ -197,7 +197,7 @@ msgid "Warning: this action cannot be undone."
 msgstr "Warnung: Diese Aktion kann nicht rückgängig gemacht werden."
 
 msgid "The number range \"%(name)s\" still has %(count)s assigned bag numbers. All of them will be permanently released and deleted."
-msgstr "Der Nummernkreis „%(name)s" hat noch %(count)s vergebene Taschennummern. Diese werden dauerhaft freigegeben und gelöscht."
+msgstr "Der Nummernkreis „%(name)s“ hat noch %(count)s vergebene Taschennummern. Diese werden dauerhaft freigegeben und gelöscht."
 
 msgid "The following product assignments will also be removed:"
 msgstr "Folgende Produktzuordnungen werden ebenfalls entfernt:"
@@ -214,7 +214,7 @@ msgstr "Fehlende Nummern vergeben"
 
 # overview.html – new feature strings
 msgid "<strong>%(count)s order positions</strong> should have a bag number but have none assigned yet. Use the \"Assign missing numbers\" button below for the affected product."
-msgstr "<strong>%(count)s Bestellpositionen</strong> sollten eine Taschennummer haben, aber es wurde noch keine vergeben. Verwende den Button „Fehlende Nummern vergeben" beim betroffenen Produkt."
+msgstr "<strong>%(count)s Bestellpositionen</strong> sollten eine Taschennummer haben, aber es wurde noch keine vergeben. Verwende den Button „Fehlende Nummern vergeben“ beim betroffenen Produkt."
 
 msgid "Status"
 msgstr "Status"

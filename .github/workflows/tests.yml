@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    # weekly, to notice breaking changes in pretix master early
+    - cron: "17 4 * * 1"
+
+jobs:
+  test:
+    # "pytest (pretix stable)" is the required status check in the branch
+    # ruleset for main; the master job is informational.
+    name: pytest (pretix ${{ matrix.pretix }})
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.pretix == 'master' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pretix: stable
+            install: "pretix"
+          - pretix: master
+            # pretix' pyproject.toml lives in the repository root (not in src/)
+            install: "pretix @ git+https://github.com/pretix/pretix.git@master"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y gettext
+      - name: Install pretix
+        run: pip install "${{ matrix.install }}"
+      - name: Install plugin and test dependencies
+        run: pip install pytest pytest-django -e .
+      - name: Compile translations
+        run: cd pretix_bagnumbers && django-admin compilemessages
+      - name: Run tests
+        run: pytest
