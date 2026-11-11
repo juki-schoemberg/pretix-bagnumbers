@@ -1,6 +1,6 @@
 [project]
 name = "pretix-bagnumbers"
-version = "1.0.0"
+version = "1.1.0"
 description = "Sequential bag numbers with configurable number ranges per product"
 readme = "README.md"
 authors = [{ name = "JuKi Schömberg e.V." }]

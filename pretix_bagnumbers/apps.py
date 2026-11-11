@@ -15,7 +15,7 @@ class PluginApp(AppConfig):
             "available in ticket printing and exports."
         )
         visible = True
-        version = "1.0.0"
+        version = "1.1.0"
         category = "FEATURE"
         compatibility = "pretix>=2026.9.0"
 
